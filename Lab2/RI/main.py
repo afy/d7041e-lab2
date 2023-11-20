@@ -2,10 +2,12 @@ import numpy as np
 import text_functions as tf
 import nltk
 
+print("training")
+
 #@author: The first version of this code is the courtesy of Vadim Selyanik
 
 threshold = 15000 # Frequency threshold in the corpus ??
-dimension = 2000 # Dimensionality for high-dimensional vectors
+dimension = 1000 # Dimensionality for high-dimensional vectors
 lemmatizer = nltk.WordNetLemmatizer()  # create an instance of lemmatizer
 ones_number = 2 # number of nonzero elements in randomly generated high-dimensional vectors
 window_size = 2 #number of neighboring words to consider both back and forth. In other words number of words before/after current word

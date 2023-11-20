@@ -16,7 +16,7 @@ for line in file: # read the file and create list which contains all sentences f
     sentences.append(line.split())
 # train word2vec on the two sentences
 
-dimension = 50 # parameter for Word2vec size of vectors for word embedding
+dimension = 1000 # parameter for Word2vec size of vectors for word embedding
 
 threshold = 0.00055 # parameter for Word2vec
 
@@ -24,9 +24,9 @@ threshold = 0.00055 # parameter for Word2vec
 sum = 0.0
 
 # 
-model = gensim.models.Word2Vec(sentences, min_count=1, sample=threshold, sg=1,size=dimension) # create model using Word2Ve with the given parameters
+model = gensim.models.Word2Vec(sentences, workers=3, min_count=1, sample=threshold, sg=1, vector_size=dimension) # create model using Word2Ve with the given parameters
 #
-print(len(model.vocab)) # check the length of the vocabulary which was formed by Word2Vec
+print(len(model.wv.key_to_index)) # check the length of the vocabulary which was formed by Word2Vec
 
 #The rest implements passing TOEFL tests
 i = 0 #counter for TOEFL tests
@@ -41,12 +41,12 @@ while i < number_of_tests:
                 words = [lemmatizer.lemmatize(lemmatizer.lemmatize(lemmatizer.lemmatize(word, 'v'), 'n'), 'a') for word in
                          words] # lemmatize words in the current test
                 vectors = []
-                if words[0] in model: # check if there embedding for the query word
+                if words[0] in model.wv: # check if there embedding for the query word
                     k = 1 #counter for loop iterating over 5 words in the test
-                    vectors.append(model[words[0]])
+                    vectors.append(model.wv[words[0]])
                     while k < 5:
-                        if words[k] in model: # if alternative has the embedding
-                            vectors.append(model[words[k]]) #assing the learned vector
+                        if words[k] in model.wv: # if alternative has the embedding
+                            vectors.append(model.wv[words[k]]) #assing the learned vector
                         else: 
                             vectors.append(np.random.randn(dimension)) #assing random vector
                         k += 1
