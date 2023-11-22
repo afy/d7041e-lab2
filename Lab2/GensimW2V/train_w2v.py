@@ -1,0 +1,79 @@
+import gensim, logging, numpy as np
+import help_functions as hf
+import nltk
+import time
+
+def main_func(dim, infile):
+    print("Training with no logging")
+    #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    lemmatizer = nltk.WordNetLemmatizer() # create a lemmatizer
+    sentences = []
+    file = open(infile, "r")
+    for line in file: # read the file and create list which contains all sentences found in the text
+        sentences.append(line.split())
+    threshold = 0.00055 # parameter for Word2vec
+    sum = 0.0
+    model = gensim.models.Word2Vec(sentences, workers=3, min_count=1, sample=threshold, sg=1, vector_size=dim) 
+    i = 0 #counter for TOEFL tests
+    number_of_tests = 80
+    text_file = open('new_toefl.txt', 'r')
+    right_answers = 0 # variable for correct answers
+    number_skipped_tests = 0 # some tests could be skipped if there are no corresponding words in the vocabulary extracted from the training corpus
+    while i < number_of_tests:
+                line = text_file.readline() #read line in the file
+                words = line.split() # extract words from the line
+                try:
+                    words = [lemmatizer.lemmatize(lemmatizer.lemmatize(lemmatizer.lemmatize(word, 'v'), 'n'), 'a') for word in
+                            words] # lemmatize words in the current test
+                    vectors = []
+                    if words[0] in model.wv: # check if there embedding for the query word
+                        k = 1 #counter for loop iterating over 5 words in the test
+                        vectors.append(model.wv[words[0]])
+                        while k < 5:
+                            if words[k] in model.wv: # if alternative has the embedding
+                                vectors.append(model.wv[words[k]]) #assing the learned vector
+                            else: 
+                                vectors.append(np.random.randn(dim)) #assing random vector
+                            k += 1
+                        right_answers += hf.get_answer_mod(vectors) #find the closest vector and check if it is the correct answer
+
+                except KeyError: # if there is no representation for the query vector than skip
+                    number_skipped_tests += 1
+                    print("skipped test: " + str(i) + "; Line: " + str(words))
+                except IndexError:
+                    print(i)
+                    print(line)
+                    print(words)
+                    break
+                i += 1
+    text_file.close()
+    sum += 100 * float(right_answers) / float(number_of_tests) #get the percentage
+    print("Threshold ferq = "+ str(threshold)+" Percentage of correct answers: " + str(sum) + "%")
+    return sum
+
+
+def allTraining(infile, sims = 5):
+    r1 = []
+    for x in range(0, sims):
+        r1.append(trainModel(10, infile))
+
+    r2 = []
+    for y in range(0, sims):
+        r2.append(trainModel(100, infile))
+
+    r3 = []
+    for z in range(0, sims):
+        r3.append(trainModel(1000, infile))
+
+    print("dim=10: {}".format(r1))
+    print("dim=100: {}".format(r2))
+    print("dim=1000: {}".format(r3))
+
+
+def trainModel(dim, infile):
+    s = time.time()
+    acc = main_func(dim, infile)
+    e = time.time()
+    return (acc, e-s)
+
+allTraining("../tr.txt")
